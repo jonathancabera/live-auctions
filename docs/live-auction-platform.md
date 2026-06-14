@@ -84,12 +84,12 @@ fix — I'll make the changes myself.
 ```
 
 ### Checklist
-- [ ] Monorepo structure created (`/client`, `/server`)
-- [ ] PostgreSQL schema with `users`, `auctions`, `bids`, `payments` tables
+- [x] Monorepo structure created (`/client`, `/server`)
+- [x] PostgreSQL schema with `users`, `auctions`, `bids`, `payments` tables — hosted on Supabase (Postgres 17), loaded and verified; SSL required on the pg pool
 - [ ] `POST /api/auth/register` works
 - [ ] `POST /api/auth/login` returns a JWT
 - [ ] Auth middleware protects routes
-- [ ] `.env.example` committed, `.env` gitignored
+- [x] `.env.example` committed, `.env` gitignored (`.env` lives in `server/`)
 
 ---
 
