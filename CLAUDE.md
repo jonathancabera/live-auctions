@@ -3,6 +3,7 @@
 Full spec: docs/live-auction-platform.md
 
 ## Stack
+
 - Frontend: React + Vite + TypeScript + Tailwind v4
 - Backend: Node.js + Express + TypeScript
 - DB: PostgreSQL (pg pool, raw SQL migrations via node-pg-migrate)
@@ -12,4 +13,5 @@ Full spec: docs/live-auction-platform.md
 - Hosting: AWS EC2
 
 ## Current phase
+
 Phase 1 — auth + schema
