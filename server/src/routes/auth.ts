@@ -2,11 +2,17 @@ import { Router } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { pool } from '../db';
-import { RegisterBody, JwtPayload } from '../types/auth';
+import { RegisterBody, JwtPayload, AuthRequest } from '../types/auth';
+import { requireAuth } from '../middleware/auth';
 
 const router = Router();
 
 // TODO: POST /login
+
+// Protected route to verify requireAuth end-to-end
+router.get('/me', requireAuth, (req, res) => {
+  res.json({ user: (req as AuthRequest).user });
+});
 
 router.post('/register', async (req, res) => {
   const { email, password, display_name } = req.body as RegisterBody;

@@ -1,3 +1,5 @@
+import {Request} from 'express';
+
 export interface RegisterBody {
   email: string;
   password: string;
@@ -9,7 +11,15 @@ export interface LoginBody {
   password: string;
 }
 
-// What we sign into the JWT and read back off req.user in requireAuth.
 export interface JwtPayload {
   user_id: number;
+}
+
+export interface LoginBody {
+  email: string;
+  password: string
+}
+
+export interface AuthRequest extends Request {
+  user: JwtPayload;
 }

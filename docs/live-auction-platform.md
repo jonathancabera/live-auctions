@@ -16,11 +16,12 @@ A web-based live auction platform where sellers list items, buyers place real-ti
 WebSockets, and the winner is charged automatically via Stripe. Deployed on AWS.
 
 **Tech stack**
-- Frontend: React (Vite), Tailwind CSS
-- Backend: Node.js + Express
+
+- Frontend: React + Vite + TypeScript + Tailwind v4
+- Backend: Node.js + Express + TypeScript
 - Real-time: Socket.io + Redis pub/sub
-- Database: PostgreSQL (AWS RDS)
-- Cache / locks: Redis (AWS ElastiCache)
+- Database: PostgreSQL — Supabase (Postgres 17), `pg` pool with SSL required, raw SQL migrations via node-pg-migrate
+- Cache / locks: Redis
 - File storage: AWS S3
 - Payments: Stripe
 - Queue: AWS SQS
@@ -84,11 +85,12 @@ fix — I'll make the changes myself.
 ```
 
 ### Checklist
+
 - [x] Monorepo structure created (`/client`, `/server`)
 - [x] PostgreSQL schema with `users`, `auctions`, `bids`, `payments` tables — hosted on Supabase (Postgres 17), loaded and verified; SSL required on the pg pool
-- [ ] `POST /api/auth/register` works
+- [x] `POST /api/auth/register` works — bcrypt hashing, parameterized insert, duplicate-email → 409, returns JWT + user object
 - [ ] `POST /api/auth/login` returns a JWT
-- [ ] Auth middleware protects routes
+- [x] Auth middleware (`requireAuth`) protects routes — verifies JWT signature, attaches `req.user`; verified end-to-end against `GET /api/auth/me` (valid → 200, missing/tampered/wrong-scheme → 401)
 - [x] `.env.example` committed, `.env` gitignored (`.env` lives in `server/`)
 
 ---
@@ -148,6 +150,7 @@ Point out issues and explain the concept behind each — don't rewrite the code 
 ```
 
 ### Checklist
+
 - [ ] Auction CRUD routes working
 - [ ] Image upload to S3 working
 - [ ] Auction list page renders
@@ -213,6 +216,7 @@ Explain the issues — don't rewrite the code.
 ```
 
 ### Checklist
+
 - [ ] `POST /api/auctions/:id/bids` validates and records bids
 - [ ] Redis lock prevents duplicate winning bids
 - [ ] Bid history endpoint works
@@ -278,6 +282,7 @@ Explain the issues — don't rewrite the code.
 ```
 
 ### Checklist
+
 - [ ] Socket.io server running
 - [ ] Redis adapter attached (for multi-instance scale)
 - [ ] Users auto-join the auction room on page load
@@ -346,6 +351,7 @@ Explain the issues — don't rewrite the code.
 ```
 
 ### Checklist
+
 - [ ] Users can save a card via Stripe Elements
 - [ ] Winner is charged automatically when auction closes
 - [ ] Stripe webhook receives `payment_intent.succeeded`
@@ -414,6 +420,7 @@ Explain the issues — don't rewrite the code.
 ```
 
 ### Checklist
+
 - [ ] SQS queue created and configured
 - [ ] All four event types published from the correct places
 - [ ] Auction close worker runs on schedule and closes expired auctions
@@ -483,6 +490,7 @@ Explain the issues — don't reconfigure it for me.
 ```
 
 ### Checklist
+
 - [ ] EC2 instance running, accessible via SSH
 - [ ] Nginx serving frontend and proxying API + WebSockets
 - [ ] RDS PostgreSQL accessible from EC2 only
@@ -549,6 +557,7 @@ Explain the issues — don't rewrite the workflow for me.
 ```
 
 ### Checklist
+
 - [ ] `.github/workflows/deploy.yml` written by hand
 - [ ] Push to `main` triggers automated deploy
 - [ ] Tests run before deploy — failed tests block the deploy
@@ -628,6 +637,7 @@ Don't rewrite my answers — tell me what to think harder about.
 ```
 
 ### Checklist
+
 - [ ] README written by hand and pushed to GitHub
 - [ ] Architecture diagram included
 - [ ] Local setup instructions tested by someone else running it cold
@@ -655,31 +665,31 @@ make sure you can delete it and rewrite it from memory before moving on.
 
 ### Key concepts to explain cold in an interview
 
-| Concept | Phase | The one thing to nail |
-|---|---|---|
-| JWT validation | 1 | What's in the token and how the signature prevents tampering |
-| S3 presigned URLs | 2 | Why the browser uploads directly to S3 instead of through your server |
-| Redis distributed lock | 3 | What SET NX EX does atomically and why TTL matters |
-| Socket.io rooms | 4 | How Redis adapter lets two EC2 instances share events |
-| Stripe webhook idempotency | 5 | Why you check if payment is already processed before charging |
-| SQS visibility timeout | 6 | What happens to a message if your worker crashes mid-processing |
-| Private subnet | 7 | Why RDS has no public IP and why that matters |
-| Zero-downtime deploy | 8 | How PM2 reload differs from PM2 restart |
+| Concept                    | Phase | The one thing to nail                                                 |
+| -------------------------- | ----- | --------------------------------------------------------------------- |
+| JWT validation             | 1     | What's in the token and how the signature prevents tampering          |
+| S3 presigned URLs          | 2     | Why the browser uploads directly to S3 instead of through your server |
+| Redis distributed lock     | 3     | What SET NX EX does atomically and why TTL matters                    |
+| Socket.io rooms            | 4     | How Redis adapter lets two EC2 instances share events                 |
+| Stripe webhook idempotency | 5     | Why you check if payment is already processed before charging         |
+| SQS visibility timeout     | 6     | What happens to a message if your worker crashes mid-processing       |
+| Private subnet             | 7     | Why RDS has no public IP and why that matters                         |
+| Zero-downtime deploy       | 8     | How PM2 reload differs from PM2 restart                               |
 
 ---
 
 ### AWS services used
 
-| Service | Purpose |
-|---|---|
-| EC2 t3.small | App server + workers |
-| RDS db.t3.micro | PostgreSQL (source of truth) |
-| ElastiCache cache.t3.micro | Redis (locks + pub/sub) |
-| S3 | Item images, payment receipts |
-| SQS | Async event queue |
-| ALB | HTTPS termination + load balancing |
-| ACM | Free SSL certificate |
-| CloudWatch | Logs and metrics |
+| Service                    | Purpose                            |
+| -------------------------- | ---------------------------------- |
+| EC2 t3.small               | App server + workers               |
+| RDS db.t3.micro            | PostgreSQL (source of truth)       |
+| ElastiCache cache.t3.micro | Redis (locks + pub/sub)            |
+| S3                         | Item images, payment receipts      |
+| SQS                        | Async event queue                  |
+| ALB                        | HTTPS termination + load balancing |
+| ACM                        | Free SSL certificate               |
+| CloudWatch                 | Logs and metrics                   |
 
 > **Cost**: ~$60–90/month. Stop EC2 and RDS when not actively demoing.
 
